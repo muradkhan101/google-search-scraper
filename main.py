@@ -1,8 +1,6 @@
 import os
 import argparse
 
-from base64 import b64decode
-
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
@@ -11,6 +9,7 @@ from selenium.webdriver.common.by import By
 from helpers.wait import wait_for_load
 from helpers.url import make_search_url
 from helpers.directory import make_directories
+import helpers.image as image
 
 ap = argparse.ArgumentParser(description='Scrape images from Google Images')
 ap.add_argument('-q', '--query', required=True, help='Search term used to query Google Images')
@@ -48,12 +47,12 @@ try:
                 break
             imageUrl = img.get_attribute('src')
             if imageUrl != None:
-                print(imageUrl)
-                file_name = directory_path + '/' + args['query'] + '{0:03d}'.format(imagesGrabbed) + '.jpeg'
-                # 23 is length of data:image/jpeg;base64, prepending string
-                byte_array = b64decode(imageUrl[23:])
-                with open(file_name, 'wb') as f:
-                    f.write(byte_array)
+                if 'base64' in imageUrl:
+                    file_name = directory_path + '/' + args['query'] + '{0:03d}'.format(imagesGrabbed) + '.jpeg'
+                    image.save_base64_image(imageUrl, file_name)
+                else:
+                    file_path = directory_path + '/' + args['query'] + '{0:03d}'.format(imagesGrabbed)
+                    image.save_image_from_url(imageUrl, file_path)
                 imagesGrabbed += 1
     else:
         print('No images found :0')
